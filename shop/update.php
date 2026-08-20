@@ -44,25 +44,49 @@ if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
 // AUTHORIZATION HEADER
 // ============================================================
 
-$headers = function_exists('getallheaders')
-    ? getallheaders()
-    : [];
-
 $authorization = '';
 
-foreach ($headers as $key => $value) {
+if (function_exists('getallheaders')) {
 
-    if (strtolower($key) === 'authorization') {
+    $headers = getallheaders();
 
-        $authorization = trim($value);
+    foreach ($headers as $key => $value) {
 
-        break;
+        if (strtolower($key) === 'authorization') {
+
+            $authorization = trim($value);
+
+            break;
+        }
     }
 }
 
 
 // ============================================================
-// TOKEN VALIDATION
+// FALLBACK AUTHORIZATION HEADER
+// ============================================================
+
+if ($authorization === '') {
+
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+
+        $authorization = trim(
+            $_SERVER['HTTP_AUTHORIZATION']
+        );
+
+    } elseif (
+        isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])
+    ) {
+
+        $authorization = trim(
+            $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+        );
+    }
+}
+
+
+// ============================================================
+// AUTHORIZATION VALIDATION
 // ============================================================
 
 if ($authorization === '') {
@@ -76,11 +100,21 @@ if ($authorization === '') {
 }
 
 
-if (!preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches)) {
+// ============================================================
+// BEARER TOKEN VALIDATION
+// ============================================================
+
+if (
+    !preg_match(
+        '/^Bearer\s+(.+)$/i',
+        $authorization,
+        $matches
+    )
+) {
 
     response(
         false,
-        'Invalid authorization format.',
+        'Invalid authorization format. Use Bearer token.',
         [],
         401
     );
@@ -89,9 +123,45 @@ if (!preg_match('/^Bearer\s+(.+)$/i', $authorization, $matches)) {
 
 $token = trim($matches[1]);
 
-$payload = verifyToken($token);
 
-if ($payload === false) {
+// ============================================================
+// TOKEN EMPTY VALIDATION
+// ============================================================
+
+if ($token === '') {
+
+    response(
+        false,
+        'Bearer token is required.',
+        [],
+        401
+    );
+}
+
+
+// ============================================================
+// VERIFY TOKEN
+// ============================================================
+
+try {
+
+    $payload = verifyToken($token);
+
+} catch (Throwable $e) {
+
+    response(
+        false,
+        'Invalid or expired token.',
+        [],
+        401
+    );
+}
+
+
+if (
+    $payload === false ||
+    !is_array($payload)
+) {
 
     response(
         false,
@@ -124,10 +194,13 @@ if (
 // JSON INPUT
 // ============================================================
 
+$raw_input = file_get_contents('php://input');
+
 $input = json_decode(
-    file_get_contents('php://input'),
+    $raw_input,
     true
 );
+
 
 if (!is_array($input)) {
 
@@ -145,15 +218,26 @@ if (!is_array($input)) {
 // ============================================================
 
 $required_fields = [
+
     'shop_id'    => 'Shop ID',
+
     'shop_name'  => 'Shop name',
+
     'owner_name' => 'Owner name',
+
     'phone'      => 'Phone number',
+
     'email'      => 'Email address',
+
     'address'    => 'Address',
+
     'username'   => 'Username',
-    'password'   => 'Password'
+
+    'password'   => 'Password',
+
+    'status'     => 'Status'
 ];
+
 
 foreach ($required_fields as $field => $label) {
 
@@ -189,6 +273,7 @@ $shop_id = filter_var(
     ]
 );
 
+
 if ($shop_id === false) {
 
     response(
@@ -199,6 +284,7 @@ if ($shop_id === false) {
     );
 }
 
+
 $shop_id = (int) $shop_id;
 
 
@@ -206,13 +292,25 @@ $shop_id = (int) $shop_id;
 // GET INPUT
 // ============================================================
 
-$shop_name  = trim($input['shop_name']);
-$owner_name = trim($input['owner_name']);
-$phone      = trim($input['phone']);
-$email      = strtolower(trim($input['email']));
-$address    = trim($input['address']);
-$username   = trim($input['username']);
-$password   = $input['password'];
+$shop_name  = trim((string) $input['shop_name']);
+
+$owner_name = trim((string) $input['owner_name']);
+
+$phone      = trim((string) $input['phone']);
+
+$email      = strtolower(
+    trim((string) $input['email'])
+);
+
+$address    = trim((string) $input['address']);
+
+$username   = trim((string) $input['username']);
+
+$password   = (string) $input['password'];
+
+$status     = strtolower(
+    trim((string) $input['status'])
+);
 
 
 // ============================================================
@@ -220,7 +318,20 @@ $password   = $input['password'];
 // ============================================================
 
 $stmt = $pdo->prepare("
-    SELECT id
+    SELECT
+        id,
+        shop_name,
+        owner_name,
+        phone,
+        email,
+        address,
+        username,
+        password,
+        qr_code,
+        status,
+        last_login_at,
+        created_at,
+        updated_at
     FROM shops
     WHERE id = ?
     LIMIT 1
@@ -230,7 +341,10 @@ $stmt->execute([
     $shop_id
 ]);
 
-if (!$stmt->fetch()) {
+$existing_shop = $stmt->fetch(PDO::FETCH_ASSOC);
+
+
+if (!$existing_shop) {
 
     response(
         false,
@@ -245,7 +359,10 @@ if (!$stmt->fetch()) {
 // SHOP NAME VALIDATION
 // ============================================================
 
-if (strlen($shop_name) < 2 || strlen($shop_name) > 150) {
+if (
+    strlen($shop_name) < 2 ||
+    strlen($shop_name) > 150
+) {
 
     response(
         false,
@@ -254,6 +371,7 @@ if (strlen($shop_name) < 2 || strlen($shop_name) > 150) {
         422
     );
 }
+
 
 if (preg_match('/\s{2,}/', $shop_name)) {
 
@@ -270,7 +388,10 @@ if (preg_match('/\s{2,}/', $shop_name)) {
 // OWNER NAME VALIDATION
 // ============================================================
 
-if (strlen($owner_name) < 2 || strlen($owner_name) > 100) {
+if (
+    strlen($owner_name) < 2 ||
+    strlen($owner_name) > 100
+) {
 
     response(
         false,
@@ -279,6 +400,7 @@ if (strlen($owner_name) < 2 || strlen($owner_name) > 100) {
         422
     );
 }
+
 
 if (!preg_match('/^[A-Za-z .]+$/', $owner_name)) {
 
@@ -289,6 +411,7 @@ if (!preg_match('/^[A-Za-z .]+$/', $owner_name)) {
         422
     );
 }
+
 
 if (preg_match('/\s{2,}/', $owner_name)) {
 
@@ -305,7 +428,12 @@ if (preg_match('/\s{2,}/', $owner_name)) {
 // PHONE VALIDATION
 // ============================================================
 
-if (!preg_match('/^[6-9][0-9]{9}$/', $phone)) {
+if (
+    !preg_match(
+        '/^[6-9][0-9]{9}$/',
+        $phone
+    )
+) {
 
     response(
         false,
@@ -316,9 +444,16 @@ if (!preg_match('/^[6-9][0-9]{9}$/', $phone)) {
 }
 
 
-// Reject repeated digits like 6666666666
+// ============================================================
+// REJECT REPEATED PHONE NUMBERS
+// ============================================================
 
-if (preg_match('/^(\d)\1{9}$/', $phone)) {
+if (
+    preg_match(
+        '/^(\d)\1{9}$/',
+        $phone
+    )
+) {
 
     response(
         false,
@@ -343,7 +478,13 @@ if (strlen($email) > 150) {
     );
 }
 
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
+if (
+    !filter_var(
+        $email,
+        FILTER_VALIDATE_EMAIL
+    )
+) {
 
     response(
         false,
@@ -358,7 +499,10 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 // ADDRESS VALIDATION
 // ============================================================
 
-if (strlen($address) < 5 || strlen($address) > 1000) {
+if (
+    strlen($address) < 5 ||
+    strlen($address) > 1000
+) {
 
     response(
         false,
@@ -367,6 +511,7 @@ if (strlen($address) < 5 || strlen($address) > 1000) {
         422
     );
 }
+
 
 if (preg_match('/\s{2,}/', $address)) {
 
@@ -383,7 +528,10 @@ if (preg_match('/\s{2,}/', $address)) {
 // USERNAME VALIDATION
 // ============================================================
 
-if (strlen($username) < 3 || strlen($username) > 100) {
+if (
+    strlen($username) < 3 ||
+    strlen($username) > 100
+) {
 
     response(
         false,
@@ -393,7 +541,13 @@ if (strlen($username) < 3 || strlen($username) > 100) {
     );
 }
 
-if (!preg_match('/^[A-Za-z0-9._@-]+$/', $username)) {
+
+if (
+    !preg_match(
+        '/^[A-Za-z0-9._@-]+$/',
+        $username
+    )
+) {
 
     response(
         false,
@@ -405,10 +559,40 @@ if (!preg_match('/^[A-Za-z0-9._@-]+$/', $username)) {
 
 
 // ============================================================
+// STATUS VALIDATION
+// ============================================================
+
+$allowed_statuses = [
+    'active',
+    'inactive'
+];
+
+
+if (
+    !in_array(
+        $status,
+        $allowed_statuses,
+        true
+    )
+) {
+
+    response(
+        false,
+        'Invalid status. Allowed values are active or inactive.',
+        [],
+        422
+    );
+}
+
+
+// ============================================================
 // PASSWORD VALIDATION
 // ============================================================
 
-if (strlen($password) < 8 || strlen($password) > 255) {
+if (
+    strlen($password) < 8 ||
+    strlen($password) > 255
+) {
 
     response(
         false,
@@ -419,7 +603,9 @@ if (strlen($password) < 8 || strlen($password) > 255) {
 }
 
 
-// Uppercase
+// ============================================================
+// PASSWORD UPPERCASE
+// ============================================================
 
 if (!preg_match('/[A-Z]/', $password)) {
 
@@ -432,7 +618,9 @@ if (!preg_match('/[A-Z]/', $password)) {
 }
 
 
-// Lowercase
+// ============================================================
+// PASSWORD LOWERCASE
+// ============================================================
 
 if (!preg_match('/[a-z]/', $password)) {
 
@@ -445,7 +633,9 @@ if (!preg_match('/[a-z]/', $password)) {
 }
 
 
-// Number
+// ============================================================
+// PASSWORD NUMBER
+// ============================================================
 
 if (!preg_match('/[0-9]/', $password)) {
 
@@ -458,7 +648,9 @@ if (!preg_match('/[0-9]/', $password)) {
 }
 
 
-// Special character
+// ============================================================
+// PASSWORD SPECIAL CHARACTER
+// ============================================================
 
 if (!preg_match('/[^A-Za-z0-9]/', $password)) {
 
@@ -488,11 +680,41 @@ $stmt->execute([
     $shop_id
 ]);
 
+
 if ($stmt->fetch()) {
 
     response(
         false,
         'Shop phone number already exists.',
+        [],
+        409
+    );
+}
+
+
+// ============================================================
+// DUPLICATE EMAIL CHECK
+// ============================================================
+
+$stmt = $pdo->prepare("
+    SELECT id
+    FROM shops
+    WHERE email = ?
+    AND id != ?
+    LIMIT 1
+");
+
+$stmt->execute([
+    $email,
+    $shop_id
+]);
+
+
+if ($stmt->fetch()) {
+
+    response(
+        false,
+        'Shop email address already exists.',
         [],
         409
     );
@@ -516,6 +738,7 @@ $stmt->execute([
     $shop_id
 ]);
 
+
 if ($stmt->fetch()) {
 
     response(
@@ -536,6 +759,7 @@ $password_hash = password_hash(
     PASSWORD_DEFAULT
 );
 
+
 if ($password_hash === false) {
 
     response(
@@ -548,33 +772,88 @@ if ($password_hash === false) {
 
 
 // ============================================================
-// UPDATE SHOP
+// DATABASE UPDATE
 // ============================================================
 
-$stmt = $pdo->prepare("
-    UPDATE shops
-    SET
-        shop_name = ?,
-        owner_name = ?,
-        phone = ?,
-        email = ?,
-        address = ?,
-        username = ?,
-        password = ?,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
-");
+try {
 
-$stmt->execute([
-    $shop_name,
-    $owner_name,
-    $phone,
-    $email,
-    $address,
-    $username,
-    $password_hash,
-    $shop_id
-]);
+    $pdo->beginTransaction();
+
+
+    $stmt = $pdo->prepare("
+        UPDATE shops
+        SET
+
+            shop_name = ?,
+
+            owner_name = ?,
+
+            phone = ?,
+
+            email = ?,
+
+            address = ?,
+
+            username = ?,
+
+            password = ?,
+
+            status = ?,
+
+            updated_at = CURRENT_TIMESTAMP
+
+        WHERE id = ?
+    ");
+
+
+    $stmt->execute([
+
+        $shop_name,
+
+        $owner_name,
+
+        $phone,
+
+        $email,
+
+        $address,
+
+        $username,
+
+        $password_hash,
+
+        $status,
+
+        $shop_id
+    ]);
+
+
+    if ($stmt->rowCount() === 0) {
+
+        /*
+         * rowCount() can be 0 even when the query is
+         * successful if submitted values are unchanged.
+         * Therefore we do not treat it as an error.
+         */
+    }
+
+
+    $pdo->commit();
+
+} catch (PDOException $e) {
+
+    if ($pdo->inTransaction()) {
+
+        $pdo->rollBack();
+    }
+
+    response(
+        false,
+        'Failed to update shop.',
+        [],
+        500
+    );
+}
 
 
 // ============================================================
@@ -583,20 +862,35 @@ $stmt->execute([
 
 $stmt = $pdo->prepare("
     SELECT
+
         id,
+
         shop_name,
+
         owner_name,
+
         phone,
+
         email,
+
         address,
+
         username,
+
         qr_code,
+
         status,
+
         last_login_at,
+
         created_at,
+
         updated_at
+
     FROM shops
+
     WHERE id = ?
+
     LIMIT 1
 ");
 
@@ -604,7 +898,8 @@ $stmt->execute([
     $shop_id
 ]);
 
-$shop = $stmt->fetch();
+$shop =
+    $stmt->fetch(PDO::FETCH_ASSOC);
 
 
 // ============================================================
@@ -623,6 +918,27 @@ if (!$shop) {
 
 
 // ============================================================
+// FINAL STATUS VALIDATION
+// ============================================================
+
+if (
+    !in_array(
+        $shop['status'],
+        $allowed_statuses,
+        true
+    )
+) {
+
+    response(
+        false,
+        'Shop status could not be verified after update.',
+        [],
+        500
+    );
+}
+
+
+// ============================================================
 // SUCCESS RESPONSE
 // ============================================================
 
@@ -631,18 +947,42 @@ response(
     'Shop updated successfully.',
     [
         'shop' => [
-            'id'            => (int) $shop['id'],
-            'shop_name'     => $shop['shop_name'],
-            'owner_name'    => $shop['owner_name'],
-            'phone'         => $shop['phone'],
-            'email'         => $shop['email'],
-            'address'       => $shop['address'],
-            'username'      => $shop['username'],
-            'qr_code'       => $shop['qr_code'],
-            'status'        => $shop['status'],
-            'last_login_at' => $shop['last_login_at'],
-            'created_at'    => $shop['created_at'],
-            'updated_at'    => $shop['updated_at']
+
+            'id' =>
+                (int) $shop['id'],
+
+            'shop_name' =>
+                $shop['shop_name'],
+
+            'owner_name' =>
+                $shop['owner_name'],
+
+            'phone' =>
+                $shop['phone'],
+
+            'email' =>
+                $shop['email'],
+
+            'address' =>
+                $shop['address'],
+
+            'username' =>
+                $shop['username'],
+
+            'qr_code' =>
+                $shop['qr_code'],
+
+            'status' =>
+                $shop['status'],
+
+            'last_login_at' =>
+                $shop['last_login_at'],
+
+            'created_at' =>
+                $shop['created_at'],
+
+            'updated_at' =>
+                $shop['updated_at']
         ]
     ],
     200
