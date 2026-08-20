@@ -1,9 +1,9 @@
 <?php
 
-$host = "localhost";
+$host = "sdb-87.hosting.stackcp.net";
 $dbname = "we3x_qr_marketing";
-$username = "root";
-$password = "";
+$username = "we3x_qr_marketing-35313133461f";
+$password = "We3x@0908";
 
 try {
     $pdo = new PDO(
