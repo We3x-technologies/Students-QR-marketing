@@ -125,7 +125,7 @@ $token = trim($matches[1]);
 
 
 // ============================================================
-// TOKEN EMPTY VALIDATION
+// TOKEN VALIDATION
 // ============================================================
 
 if ($token === '') {
@@ -138,10 +138,6 @@ if ($token === '') {
     );
 }
 
-
-// ============================================================
-// VERIFY TOKEN
-// ============================================================
 
 try {
 
@@ -214,48 +210,20 @@ if (!is_array($input)) {
 
 
 // ============================================================
-// REQUIRED FIELDS
+// SHOP ID ONLY REQUIRED
 // ============================================================
 
-$required_fields = [
+if (
+    !array_key_exists('shop_id', $input) ||
+    trim((string) $input['shop_id']) === ''
+) {
 
-    'shop_id'    => 'Shop ID',
-
-    'shop_name'  => 'Shop name',
-
-    'owner_name' => 'Owner name',
-
-    'phone'      => 'Phone number',
-
-    'email'      => 'Email address',
-
-    'address'    => 'Address',
-
-    'username'   => 'Username',
-
-    'password'   => 'Password',
-
-    'status'     => 'Status'
-];
-
-
-foreach ($required_fields as $field => $label) {
-
-    if (
-        !array_key_exists($field, $input) ||
-        (
-            is_string($input[$field]) &&
-            trim($input[$field]) === ''
-        )
-    ) {
-
-        response(
-            false,
-            $label . ' is required.',
-            [],
-            422
-        );
-    }
+    response(
+        false,
+        'Shop ID is required.',
+        [],
+        422
+    );
 }
 
 
@@ -289,28 +257,45 @@ $shop_id = (int) $shop_id;
 
 
 // ============================================================
-// GET INPUT
+// ALLOWED UPDATE FIELDS
 // ============================================================
 
-$shop_name  = trim((string) $input['shop_name']);
+$allowed_fields = [
+    'shop_name',
+    'owner_name',
+    'phone',
+    'email',
+    'address',
+    'username',
+    'password',
+    'status'
+];
 
-$owner_name = trim((string) $input['owner_name']);
 
-$phone      = trim((string) $input['phone']);
+// ============================================================
+// CHECK WHETHER ANY FIELD WAS SENT
+// ============================================================
 
-$email      = strtolower(
-    trim((string) $input['email'])
-);
+$fields_to_update = [];
 
-$address    = trim((string) $input['address']);
+foreach ($allowed_fields as $field) {
 
-$username   = trim((string) $input['username']);
+    if (array_key_exists($field, $input)) {
 
-$password   = (string) $input['password'];
+        $fields_to_update[] = $field;
+    }
+}
 
-$status     = strtolower(
-    trim((string) $input['status'])
-);
+
+if (empty($fields_to_update)) {
+
+    response(
+        false,
+        'At least one field is required to update.',
+        [],
+        422
+    );
+}
 
 
 // ============================================================
@@ -356,496 +341,595 @@ if (!$existing_shop) {
 
 
 // ============================================================
-// SHOP NAME VALIDATION
+// VALIDATED VALUES
 // ============================================================
 
-if (
-    strlen($shop_name) < 2 ||
-    strlen($shop_name) > 150
-) {
-
-    response(
-        false,
-        'Shop name must be between 2 and 150 characters.',
-        [],
-        422
-    );
-}
-
-
-if (preg_match('/\s{2,}/', $shop_name)) {
-
-    response(
-        false,
-        'Shop name cannot contain multiple consecutive spaces.',
-        [],
-        422
-    );
-}
+$update_values = [];
 
 
 // ============================================================
-// OWNER NAME VALIDATION
+// SHOP NAME
 // ============================================================
 
-if (
-    strlen($owner_name) < 2 ||
-    strlen($owner_name) > 100
-) {
+if (array_key_exists('shop_name', $input)) {
 
-    response(
-        false,
-        'Owner name must be between 2 and 100 characters.',
-        [],
-        422
-    );
-}
+    $shop_name =
+        trim((string) $input['shop_name']);
 
 
-if (!preg_match('/^[A-Za-z .]+$/', $owner_name)) {
+    if (
+        strlen($shop_name) < 2 ||
+        strlen($shop_name) > 150
+    ) {
 
-    response(
-        false,
-        'Owner name can contain only letters, spaces and dots.',
-        [],
-        422
-    );
-}
+        response(
+            false,
+            'Shop name must be between 2 and 150 characters.',
+            [],
+            422
+        );
+    }
 
 
-if (preg_match('/\s{2,}/', $owner_name)) {
+    if (preg_match('/\s{2,}/', $shop_name)) {
 
-    response(
-        false,
-        'Owner name cannot contain multiple consecutive spaces.',
-        [],
-        422
-    );
+        response(
+            false,
+            'Shop name cannot contain multiple consecutive spaces.',
+            [],
+            422
+        );
+    }
+
+
+    $update_values['shop_name'] =
+        $shop_name;
 }
 
 
 // ============================================================
-// PHONE VALIDATION
+// OWNER NAME
 // ============================================================
 
-if (
-    !preg_match(
-        '/^[6-9][0-9]{9}$/',
-        $phone
-    )
-) {
+if (array_key_exists('owner_name', $input)) {
 
-    response(
-        false,
-        'Enter a valid 10-digit Indian mobile number.',
-        [],
-        422
-    );
+    $owner_name =
+        trim((string) $input['owner_name']);
+
+
+    if (
+        strlen($owner_name) < 2 ||
+        strlen($owner_name) > 100
+    ) {
+
+        response(
+            false,
+            'Owner name must be between 2 and 100 characters.',
+            [],
+            422
+        );
+    }
+
+
+    if (
+        !preg_match(
+            '/^[A-Za-z .]+$/',
+            $owner_name
+        )
+    ) {
+
+        response(
+            false,
+            'Owner name can contain only letters, spaces and dots.',
+            [],
+            422
+        );
+    }
+
+
+    if (preg_match('/\s{2,}/', $owner_name)) {
+
+        response(
+            false,
+            'Owner name cannot contain multiple consecutive spaces.',
+            [],
+            422
+        );
+    }
+
+
+    $update_values['owner_name'] =
+        $owner_name;
 }
 
 
 // ============================================================
-// REJECT REPEATED PHONE NUMBERS
+// PHONE
 // ============================================================
 
-if (
-    preg_match(
-        '/^(\d)\1{9}$/',
-        $phone
-    )
-) {
-
-    response(
-        false,
-        'Invalid phone number.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// EMAIL VALIDATION
-// ============================================================
-
-if (strlen($email) > 150) {
-
-    response(
-        false,
-        'Email address cannot exceed 150 characters.',
-        [],
-        422
-    );
-}
-
-
-if (
-    !filter_var(
-        $email,
-        FILTER_VALIDATE_EMAIL
-    )
-) {
-
-    response(
-        false,
-        'Enter a valid email address.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// ADDRESS VALIDATION
-// ============================================================
-
-if (
-    strlen($address) < 5 ||
-    strlen($address) > 1000
-) {
-
-    response(
-        false,
-        'Address must be between 5 and 1000 characters.',
-        [],
-        422
-    );
-}
-
-
-if (preg_match('/\s{2,}/', $address)) {
-
-    response(
-        false,
-        'Address cannot contain multiple consecutive spaces.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// USERNAME VALIDATION
-// ============================================================
-
-if (
-    strlen($username) < 3 ||
-    strlen($username) > 100
-) {
-
-    response(
-        false,
-        'Username must be between 3 and 100 characters.',
-        [],
-        422
-    );
-}
-
-
-if (
-    !preg_match(
-        '/^[A-Za-z0-9._@-]+$/',
-        $username
-    )
-) {
-
-    response(
-        false,
-        'Username can contain only letters, numbers, dot, underscore, @ and hyphen.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// STATUS VALIDATION
-// ============================================================
-
-$allowed_statuses = [
-    'active',
-    'inactive'
-];
-
-
-if (
-    !in_array(
-        $status,
-        $allowed_statuses,
-        true
-    )
-) {
-
-    response(
-        false,
-        'Invalid status. Allowed values are active or inactive.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// PASSWORD VALIDATION
-// ============================================================
-
-if (
-    strlen($password) < 8 ||
-    strlen($password) > 255
-) {
-
-    response(
-        false,
-        'Password must be between 8 and 255 characters.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// PASSWORD UPPERCASE
-// ============================================================
-
-if (!preg_match('/[A-Z]/', $password)) {
-
-    response(
-        false,
-        'Password must contain at least one uppercase letter.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// PASSWORD LOWERCASE
-// ============================================================
-
-if (!preg_match('/[a-z]/', $password)) {
-
-    response(
-        false,
-        'Password must contain at least one lowercase letter.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// PASSWORD NUMBER
-// ============================================================
-
-if (!preg_match('/[0-9]/', $password)) {
-
-    response(
-        false,
-        'Password must contain at least one number.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// PASSWORD SPECIAL CHARACTER
-// ============================================================
-
-if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-
-    response(
-        false,
-        'Password must contain at least one special character.',
-        [],
-        422
-    );
-}
-
-
-// ============================================================
-// DUPLICATE PHONE CHECK
-// ============================================================
-
-$stmt = $pdo->prepare("
-    SELECT id
-    FROM shops
-    WHERE phone = ?
-    AND id != ?
-    LIMIT 1
-");
-
-$stmt->execute([
-    $phone,
-    $shop_id
-]);
-
-
-if ($stmt->fetch()) {
-
-    response(
-        false,
-        'Shop phone number already exists.',
-        [],
-        409
-    );
-}
-
-
-// ============================================================
-// DUPLICATE EMAIL CHECK
-// ============================================================
-
-$stmt = $pdo->prepare("
-    SELECT id
-    FROM shops
-    WHERE email = ?
-    AND id != ?
-    LIMIT 1
-");
-
-$stmt->execute([
-    $email,
-    $shop_id
-]);
-
-
-if ($stmt->fetch()) {
-
-    response(
-        false,
-        'Shop email address already exists.',
-        [],
-        409
-    );
-}
-
-
-// ============================================================
-// DUPLICATE USERNAME CHECK
-// ============================================================
-
-$stmt = $pdo->prepare("
-    SELECT id
-    FROM shops
-    WHERE username = ?
-    AND id != ?
-    LIMIT 1
-");
-
-$stmt->execute([
-    $username,
-    $shop_id
-]);
-
-
-if ($stmt->fetch()) {
-
-    response(
-        false,
-        'Shop username already exists.',
-        [],
-        409
-    );
-}
-
-
-// ============================================================
-// PASSWORD HASH
-// ============================================================
-
-$password_hash = password_hash(
-    $password,
-    PASSWORD_DEFAULT
-);
-
-
-if ($password_hash === false) {
-
-    response(
-        false,
-        'Password hashing failed.',
-        [],
-        500
-    );
-}
-
-
-// ============================================================
-// DATABASE UPDATE
-// ============================================================
-
-try {
-
-    $pdo->beginTransaction();
-
+if (array_key_exists('phone', $input)) {
+
+    $phone =
+        trim((string) $input['phone']);
+
+
+    if (
+        !preg_match(
+            '/^[6-9][0-9]{9}$/',
+            $phone
+        )
+    ) {
+
+        response(
+            false,
+            'Enter a valid 10-digit Indian mobile number.',
+            [],
+            422
+        );
+    }
+
+
+    if (
+        preg_match(
+            '/^(\d)\1{9}$/',
+            $phone
+        )
+    ) {
+
+        response(
+            false,
+            'Invalid phone number.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // DUPLICATE PHONE
+    // --------------------------------------------------------
 
     $stmt = $pdo->prepare("
-        UPDATE shops
-        SET
-
-            shop_name = ?,
-
-            owner_name = ?,
-
-            phone = ?,
-
-            email = ?,
-
-            address = ?,
-
-            username = ?,
-
-            password = ?,
-
-            status = ?,
-
-            updated_at = CURRENT_TIMESTAMP
-
-        WHERE id = ?
+        SELECT id
+        FROM shops
+        WHERE phone = ?
+        AND id != ?
+        LIMIT 1
     ");
 
-
     $stmt->execute([
-
-        $shop_name,
-
-        $owner_name,
-
         $phone,
-
-        $email,
-
-        $address,
-
-        $username,
-
-        $password_hash,
-
-        $status,
-
         $shop_id
     ]);
 
 
-    if ($stmt->rowCount() === 0) {
+    if ($stmt->fetch()) {
 
-        /*
-         * rowCount() can be 0 even when the query is
-         * successful if submitted values are unchanged.
-         * Therefore we do not treat it as an error.
-         */
+        response(
+            false,
+            'Shop phone number already exists.',
+            [],
+            409
+        );
     }
 
 
-    $pdo->commit();
+    $update_values['phone'] =
+        $phone;
+}
+
+
+// ============================================================
+// EMAIL
+// ============================================================
+
+if (array_key_exists('email', $input)) {
+
+    $email =
+        strtolower(
+            trim((string) $input['email'])
+        );
+
+
+    if (strlen($email) > 150) {
+
+        response(
+            false,
+            'Email address cannot exceed 150 characters.',
+            [],
+            422
+        );
+    }
+
+
+    if (
+        !filter_var(
+            $email,
+            FILTER_VALIDATE_EMAIL
+        )
+    ) {
+
+        response(
+            false,
+            'Enter a valid email address.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // DUPLICATE EMAIL
+    // --------------------------------------------------------
+
+    $stmt = $pdo->prepare("
+        SELECT id
+        FROM shops
+        WHERE email = ?
+        AND id != ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        $email,
+        $shop_id
+    ]);
+
+
+    if ($stmt->fetch()) {
+
+        response(
+            false,
+            'Shop email address already exists.',
+            [],
+            409
+        );
+    }
+
+
+    $update_values['email'] =
+        $email;
+}
+
+
+// ============================================================
+// ADDRESS
+// ============================================================
+
+if (array_key_exists('address', $input)) {
+
+    $address =
+        trim((string) $input['address']);
+
+
+    if (
+        strlen($address) < 5 ||
+        strlen($address) > 1000
+    ) {
+
+        response(
+            false,
+            'Address must be between 5 and 1000 characters.',
+            [],
+            422
+        );
+    }
+
+
+    if (preg_match('/\s{2,}/', $address)) {
+
+        response(
+            false,
+            'Address cannot contain multiple consecutive spaces.',
+            [],
+            422
+        );
+    }
+
+
+    $update_values['address'] =
+        $address;
+}
+
+
+// ============================================================
+// USERNAME
+// ============================================================
+
+if (array_key_exists('username', $input)) {
+
+    $username =
+        trim((string) $input['username']);
+
+
+    if (
+        strlen($username) < 3 ||
+        strlen($username) > 100
+    ) {
+
+        response(
+            false,
+            'Username must be between 3 and 100 characters.',
+            [],
+            422
+        );
+    }
+
+
+    if (
+        !preg_match(
+            '/^[A-Za-z0-9._@-]+$/',
+            $username
+        )
+    ) {
+
+        response(
+            false,
+            'Username can contain only letters, numbers, dot, underscore, @ and hyphen.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // DUPLICATE USERNAME
+    // --------------------------------------------------------
+
+    $stmt = $pdo->prepare("
+        SELECT id
+        FROM shops
+        WHERE username = ?
+        AND id != ?
+        LIMIT 1
+    ");
+
+    $stmt->execute([
+        $username,
+        $shop_id
+    ]);
+
+
+    if ($stmt->fetch()) {
+
+        response(
+            false,
+            'Shop username already exists.',
+            [],
+            409
+        );
+    }
+
+
+    $update_values['username'] =
+        $username;
+}
+
+
+// ============================================================
+// PASSWORD
+// ============================================================
+
+if (array_key_exists('password', $input)) {
+
+    $password =
+        (string) $input['password'];
+
+
+    if ($password === '') {
+
+        response(
+            false,
+            'Password cannot be empty.',
+            [],
+            422
+        );
+    }
+
+
+    if (
+        strlen($password) < 8 ||
+        strlen($password) > 255
+    ) {
+
+        response(
+            false,
+            'Password must be between 8 and 255 characters.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // UPPERCASE
+    // --------------------------------------------------------
+
+    if (!preg_match('/[A-Z]/', $password)) {
+
+        response(
+            false,
+            'Password must contain at least one uppercase letter.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // LOWERCASE
+    // --------------------------------------------------------
+
+    if (!preg_match('/[a-z]/', $password)) {
+
+        response(
+            false,
+            'Password must contain at least one lowercase letter.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // NUMBER
+    // --------------------------------------------------------
+
+    if (!preg_match('/[0-9]/', $password)) {
+
+        response(
+            false,
+            'Password must contain at least one number.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // SPECIAL CHARACTER
+    // --------------------------------------------------------
+
+    if (!preg_match('/[^A-Za-z0-9]/', $password)) {
+
+        response(
+            false,
+            'Password must contain at least one special character.',
+            [],
+            422
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // HASH PASSWORD
+    // --------------------------------------------------------
+
+    $password_hash =
+        password_hash(
+            $password,
+            PASSWORD_DEFAULT
+        );
+
+
+    if ($password_hash === false) {
+
+        response(
+            false,
+            'Password hashing failed.',
+            [],
+            500
+        );
+    }
+
+
+    $update_values['password'] =
+        $password_hash;
+}
+
+
+// ============================================================
+// STATUS
+// ============================================================
+
+if (array_key_exists('status', $input)) {
+
+    $status =
+        strtolower(
+            trim((string) $input['status'])
+        );
+
+
+    if (
+        $status !== 'active' &&
+        $status !== 'inactive'
+    ) {
+
+        response(
+            false,
+            'Invalid status. Allowed values are active or inactive.',
+            [],
+            422
+        );
+    }
+
+
+    $update_values['status'] =
+        $status;
+}
+
+
+// ============================================================
+// NOTHING TO UPDATE AFTER VALIDATION
+// ============================================================
+
+if (empty($update_values)) {
+
+    response(
+        false,
+        'No valid fields available for update.',
+        [],
+        422
+    );
+}
+
+
+// ============================================================
+// BUILD DYNAMIC UPDATE QUERY
+// ============================================================
+
+$set_parts = [];
+
+$query_values = [];
+
+
+foreach ($update_values as $column => $value) {
+
+    $set_parts[] =
+        $column . ' = ?';
+
+    $query_values[] =
+        $value;
+}
+
+
+// ============================================================
+// UPDATED AT
+// ============================================================
+
+$set_parts[] =
+    'updated_at = CURRENT_TIMESTAMP';
+
+
+// ============================================================
+// SHOP ID
+// ============================================================
+
+$query_values[] =
+    $shop_id;
+
+
+// ============================================================
+// UPDATE DATABASE
+// ============================================================
+
+try {
+
+    $sql = "
+        UPDATE shops
+        SET
+            " . implode(', ', $set_parts) . "
+        WHERE id = ?
+    ";
+
+
+    $stmt = $pdo->prepare($sql);
+
+    $stmt->execute(
+        $query_values
+    );
 
 } catch (PDOException $e) {
-
-    if ($pdo->inTransaction()) {
-
-        $pdo->rollBack();
-    }
 
     response(
         false,
@@ -924,7 +1008,10 @@ if (!$shop) {
 if (
     !in_array(
         $shop['status'],
-        $allowed_statuses,
+        [
+            'active',
+            'inactive'
+        ],
         true
     )
 ) {
@@ -939,6 +1026,19 @@ if (
 
 
 // ============================================================
+// UPDATED FIELDS RESPONSE
+// ============================================================
+
+$updated_fields = [];
+
+foreach ($update_values as $field => $value) {
+
+    $updated_fields[] =
+        $field;
+}
+
+
+// ============================================================
 // SUCCESS RESPONSE
 // ============================================================
 
@@ -946,6 +1046,10 @@ response(
     true,
     'Shop updated successfully.',
     [
+
+        'updated_fields' =>
+            $updated_fields,
+
         'shop' => [
 
             'id' =>
