@@ -1,0 +1,687 @@
+{
+  "info": {
+    "_postman_id": "a20ff6f6-5570-4ebf-b7d2-ae04843a9025",
+    "name": "we3x_qr_marketing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47150003",
+    "_collection_link": "https://go.postman.co/collection/47150003-a20ff6f6-5570-4ebf-b7d2-ae04843a9025?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "login.php",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"user_id\": \"we3x_admin\",\r\n    \"password\": \"We3x@0908\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/auth/login.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "auth",
+                "login.php"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "logout.php",
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "shop",
+      "item": [
+        {
+          "name": "create.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"shop_name\": \"Sri Textiles\",\r\n    \"owner_name\": \"Ramesh Kumar\",\r\n    \"phone\": \"9876543210\",\r\n    \"email\": \"sritextiles@gmail.com\",\r\n    \"address\": \"12 Main Road, Karaikudi, Tamil Nadu\",\r\n    \"username\": \"sri_textiles\",\r\n    \"password\": \"Sri@1234\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/shop/create.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "shop",
+                "create.php"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"shop_id\": 1,\r\n    \"shop_name\": \"Sri Textiles\",\r\n    \"owner_name\": \"Ramesh Kumar\",\r\n    \"phone\": \"9876543210\",\r\n    \"email\": \"sritextiles@gmail.com\",\r\n    \"address\": \"12 Main Road, Karaikudi, Tamil Nadu\",\r\n    \"username\": \"sri_textiles\",\r\n    \"password\": \"Sri@12345\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/shop/update.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "shop",
+                "update.php"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "delete.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"shop_id\": 2\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/shop/delete.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "shop",
+                "delete.php"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "list.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/shop/list.php?search=sri",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "shop",
+                "list.php"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "sri"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "view.php",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/shop/view.php?shop_id=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "shop",
+                "view.php"
+              ],
+              "query": [
+                {
+                  "key": "shop_id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "generate_qr.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"shop_id\": 1\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/shop/generate_qr.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "shop",
+                "generate_qr.php"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "student",
+      "item": [
+        {
+          "name": "verify_shop.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"shop_id\": 1\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/student/verify_shop.php?qr=WE3X-QR-89D74E9BEBABBA71",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "student",
+                "verify_shop.php"
+              ],
+              "query": [
+                {
+                  "key": "qr",
+                  "value": "WE3X-QR-89D74E9BEBABBA71"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create.php",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"registration_token\": \"3494151e9cf2915e1641cbebde39252e9e3cc8f0fd219a9d83f8e9d2925b3659\",\r\n    \"name\": \"Arun Kumar\",\r\n    \"gender\": \"male\",\r\n    \"phone\": \"9876543210\",\r\n    \"email\": \"arun@gmail.com\",\r\n    \"current_location\": \"Karaikudi\",\r\n    \"highest_qualification\": \"B.E. Computer Science\",\r\n    \"institution_name\": \"ABC Engineering College\",\r\n    \"current_status\": \"student\",\r\n    \"current_status_other\": \"\",\r\n    \"course_applied\": \"ai_ml\",\r\n    \"training_mode\": \"classroom\",\r\n    \"declaration\": true\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/student/create.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "student",
+                "create.php"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "lead",
+      "item": [
+        {
+          "name": "list.php",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/lead/list.php?search=",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "lead",
+                "list.php"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "view.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/lead/view.php?lead_id=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "lead",
+                "view.php"
+              ],
+              "query": [
+                {
+                  "key": "lead_id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "update_status.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"lead_id\": 1,\r\n    \"status\": \"converted\",\r\n    \"remarks\": \"Student contacted and course details explained.\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/lead/update_status.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "lead",
+                "update_status.php"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "shop_list.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_1ce0}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/lead/shop_list.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "lead",
+                "shop_list.php"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "status_update.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/lead/status_history.php?lead_id=1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "lead",
+                "status_history.php"
+              ],
+              "query": [
+                {
+                  "key": "lead_id",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "qr_scan_list.php",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/lead/qr_scan_list.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "lead",
+                "qr_scan_list.php"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "dashboard",
+      "item": [
+        {
+          "name": "admin.php",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0yis}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/dashboard/admin.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "dashboard",
+                "admin.php"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "shop.php",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{auth_secret_0l46}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost/we3x_qr_marketing/dashboard/shop.php",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "path": [
+                "we3x_qr_marketing",
+                "dashboard",
+                "shop.php"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "auth_secret_0yis",
+      "secret": true
+    },
+    {
+      "key": "auth_secret_1ce0",
+      "secret": true
+    },
+    {
+      "key": "auth_secret_0l46",
+      "secret": true
+    }
+  ]
+}
