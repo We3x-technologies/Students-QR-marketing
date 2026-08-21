@@ -4,7 +4,6 @@ $jwt_secret = 'WE3X_QR_MARKETING_SECRET_KEY_CHANGE_THIS';
 
 $jwt_expiry = 86400; // 24 hours
 
-
 function generateToken($user_id, $username, $role)
 {
     global $jwt_secret, $jwt_expiry;
